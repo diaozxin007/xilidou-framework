@@ -1,5 +1,8 @@
 package com.xilidou.framework.ioc.bean;
 
+import lombok.Data;
+
+@Data
 public class PropertyArg {
 
     private String name;
