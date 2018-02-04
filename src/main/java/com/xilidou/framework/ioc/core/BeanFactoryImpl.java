@@ -7,9 +7,11 @@ import com.xilidou.framework.ioc.utils.ClassUtils;
 import com.xilidou.framework.ioc.utils.ReflectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class BeanFactoryImpl implements BeanFactory{
 
@@ -57,11 +59,17 @@ public class BeanFactoryImpl implements BeanFactory{
         if(constructorArgs != null && !constructorArgs.isEmpty()){
             List<Object> objects = new ArrayList<>();
             for (ConstructorArg constructorArg : constructorArgs) {
-                objects.add(getBean(constructorArg.getRef()));
+                if (constructorArg.getValue() != null) {
+                    objects.add(constructorArg.getValue());
+                } else {
+                    objects.add(getBean(constructorArg.getRef()));
+                }
             }
-            return BeanUtils.instanceByCglib(clz,clz.getConstructor(),objects.toArray());
-        }else {
-            return BeanUtils.instanceByCglib(clz,null,null);
+            Class[] constructorArgTypes = objects.stream().map(it -> it.getClass()).collect(Collectors.toList()).toArray(new Class[]{});
+            Constructor constructor = clz.getConstructor(constructorArgTypes);
+            return BeanUtils.instanceByCglib(clz, constructor, objects.toArray());
+        } else {
+            return BeanUtils.instanceByCglib(clz, null, null);
         }
     }
 
